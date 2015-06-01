@@ -1,8 +1,11 @@
 package excel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Scanner;
+
 import jxl.CellReferenceHelper;
 import jxl.CellView;
 import jxl.Workbook;
@@ -30,14 +33,39 @@ public class WriteExcel {
 	private static int SEQUENTIAL_RUNTIME_COLUMN = 5;
 	private static String fileName = "file.xls";
 	private static double[] seqRuntimes = {10.0,12.0};
-	private static double[][] runtimes = { { 1.0, 2.0 }, { 4.0, 5.0 } };
-	private static int[] problemSizes = {1024, 2048};
-	private static int[] processors = { 32, 64 };
+	private static double[][] runtimes = { { 7,8 }, { 9, 10 } };
+	private static double[] sequentialRuntimes = {5,6};
+	private static int[] problemSizes;
+	private static int[] processors;
+	
+	public enum DataType {
+	    INT, DOUBLE
+	}
 
 	public static void main(String[] args) throws WriteException, IOException {
-
-		
 		try {
+			// Write comma separated runtimes into 2D-Array
+			Scanner sc = new Scanner(new File("parallel_runtimes.txt"));
+			int index = 0;
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] separatedValues = line.split(",");
+				for (int i=0;i<separatedValues.length;i++) {
+					runtimes[index][i] = Double.parseDouble(separatedValues[i]);
+				}
+				index++;
+			}
+			sc.close();
+			sc = new Scanner(new File("sequential_runtimes.txt"));
+			String line = sc.nextLine();
+			String[] separatedValues = line.split(",");
+			for (int i=0;i<separatedValues.length;i++) {
+				sequentialRuntimes[i] = Double.parseDouble(separatedValues[i]);
+			}
+			processors = parseIntegers("processors.txt");
+			problemSizes = parseIntegers("problem_sizes.txt");
+
+			
 			WritableWorkbook workbook = Workbook.createWorkbook(new File(
 					fileName));
 			WritableSheet writableSheet = workbook.createSheet("Sheet1", 0);
@@ -99,5 +127,18 @@ public class WriteExcel {
 		} catch (WriteException e) {
 
 		}
+	}
+	
+	private static int[] parseIntegers(String fileName) throws FileNotFoundException {
+		Scanner sc = new Scanner(new File(fileName));
+		String line = sc.nextLine();
+		String[] separatedValues = line.split(",");
+		
+		int[] result = new int[separatedValues.length];
+		for (int i=0;i<separatedValues.length;i++) {
+			result[i] = Integer.parseInt(separatedValues[i]);
+		}
+		sc.close();
+		return result;
 	}
 }
